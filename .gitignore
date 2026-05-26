@@ -31,7 +31,25 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.local
 .env*.local
+.env.*.local
+
+# sensitive credentials and secrets
+.secrets
+.secrets/
+*.secret
+credentials.json
+config/secrets.json
+secrets.json
+.aws/
+.ssh/
+.apikey
+.token
+*.credentials
+private_key.pem
+private.pem
 
 # typescript
 *.tsbuildinfo

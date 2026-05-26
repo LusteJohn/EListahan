@@ -17,6 +17,14 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen
+          name="category-form"
+          options={{ presentation: 'modal', title: 'Category' }}
+        />
+        <Stack.Screen
+          name="product-form"
+          options={{ presentation: 'modal', title: 'Product' }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

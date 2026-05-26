@@ -1,98 +1,153 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { TopAppBar } from '@/components/top-app-bar';
+import { Fonts } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const [search, setSearch] = useState('');
+  const palette = useMemo(
+    () =>
+      colorScheme === 'dark'
+        ? {
+            background: '#0f1420',
+            surface: '#151b2a',
+            surfaceAlt: '#1d2638',
+            border: '#2f3a52',
+            primary: '#8db1ff',
+            text: '#e9eefc',
+            muted: '#9aa6bf',
+          }
+        : {
+            background: '#f9f9ff',
+            surface: '#ffffff',
+            surfaceAlt: '#e7eeff',
+            border: '#c3c6d7',
+            primary: '#004ac6',
+            text: '#111c2d',
+            muted: '#6b7080',
+          },
+    [colorScheme]
+  );
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
+      <TopAppBar title="SariSari Hub" subtitle="Store Dashboard" />
+
+      <View style={styles.content}>
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>Search inventory</ThemedText>
+          <View style={[styles.searchRow, { borderColor: palette.border, backgroundColor: palette.surface }]}
+          >
+            <TextInput
+              placeholder="Scan barcode or type item name..."
+              placeholderTextColor={colorScheme === 'dark' ? '#7f8ca6' : '#737686'}
+              value={search}
+              onChangeText={setSearch}
+              style={[styles.searchInput, { color: palette.text }]}
+            />
+          </View>
+        </View>
+
+        <View style={styles.quickActions}>
+          <Pressable
+            style={[styles.actionCard, { borderColor: palette.border, backgroundColor: palette.surface }]}
+            onPress={() => router.push('/category-form')}
+          >
+            <ThemedText style={[styles.cardLabel, { color: palette.muted }]}>Category</ThemedText>
+            <ThemedText style={[styles.cardTitle, { color: palette.text }]}>Add category</ThemedText>
+            <ThemedText style={[styles.actionHint, { color: palette.muted }]}>Create a new grouping</ThemedText>
+          </Pressable>
+          <Pressable
+            style={[styles.actionCard, { borderColor: palette.border, backgroundColor: palette.surface }]}
+            onPress={() => router.push('/product-form')}
+          >
+            <ThemedText style={[styles.cardLabel, { color: palette.muted }]}>Product</ThemedText>
+            <ThemedText style={[styles.cardTitle, { color: palette.text }]}>Add product</ThemedText>
+            <ThemedText style={[styles.actionHint, { color: palette.muted }]}>Record new inventory</ThemedText>
+          </Pressable>
+        </View>
+
+        <View style={[styles.surfaceCard, { borderColor: palette.border, backgroundColor: palette.surface }]}>
+          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>Quick status</ThemedText>
+          <ThemedText style={[styles.statusTitle, { color: palette.text }]}>Inventory ready</ThemedText>
+          <ThemedText style={[styles.statusBody, { color: palette.muted }]}>
+            Use the tabs to manage categories, products, and pricing.
+          </ThemedText>
+        </View>
+      </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    flex: 1,
+    gap: 12,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 12,
+  },
+  section: {
+    marginTop: 12,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  sectionLabel: {
+    textTransform: 'uppercase',
+    fontSize: 11,
+    letterSpacing: 1.2,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  searchRow: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  searchInput: {
+    fontSize: 15,
+  },
+  quickActions: {
+    gap: 12,
+    marginTop: 12,
+  },
+  actionCard: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    gap: 8,
+  },
+  cardLabel: {
+    textTransform: 'uppercase',
+    fontSize: 11,
+    letterSpacing: 1.2,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.rounded,
+  },
+  actionHint: {
+    fontSize: 13,
+  },
+  surfaceCard: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 4,
+    gap: 8,
+  },
+  statusTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.rounded,
+  },
+  statusBody: {
+    fontSize: 13,
   },
 });
