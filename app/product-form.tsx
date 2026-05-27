@@ -1,5 +1,7 @@
 import { useFocusEffect } from "@react-navigation/native";
 import * as Crypto from "expo-crypto";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, View } from "react-native";
@@ -105,6 +107,38 @@ export default function ProductFormScreen() {
 
   const generateBarcode = () =>
     Crypto.randomUUID().replace(/-/g, "").toUpperCase();
+
+  const pickImage = async (source: "camera" | "library") => {
+    const permissionResult =
+      source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission needed",
+        source === "camera"
+          ? "Camera permission is required to take a photo."
+          : "Photo library permission is required to select an image.",
+      );
+      return;
+    }
+
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            quality: 0.8,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            quality: 0.8,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          });
+
+    if (!result.canceled && result.assets[0]?.uri) {
+      setProductImage(result.assets[0].uri);
+    }
+  };
 
   const handleSave = async () => {
     if (!productName.trim()) {
@@ -240,6 +274,31 @@ export default function ProductFormScreen() {
             onChangeText={setProductImage}
             placeholder="Image URL or path"
           />
+          <View style={styles.imageActions}>
+            <Pressable
+              style={[styles.imageButton, { borderColor: palette.border }]}
+              onPress={() => pickImage("camera")}
+            >
+              <ThemedText style={{ color: palette.text }}>
+                Take photo
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              style={[styles.imageButton, { borderColor: palette.border }]}
+              onPress={() => pickImage("library")}
+            >
+              <ThemedText style={{ color: palette.text }}>
+                Upload photo
+              </ThemedText>
+            </Pressable>
+          </View>
+          {productImage ? (
+            <Image
+              source={{ uri: productImage }}
+              style={styles.imagePreview}
+              contentFit="cover"
+            />
+          ) : null}
         </ThemedView>
 
         <View style={styles.actions}>
@@ -333,5 +392,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     paddingVertical: 10,
+  },
+  imageActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  imageButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  imagePreview: {
+    width: "100%",
+    height: 160,
+    borderRadius: 8,
   },
 });
