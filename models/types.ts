@@ -24,3 +24,10 @@ export type Product = {
   created_at?: string | null;
   updated_at?: string | null;
 };
+
+export type Customer = {
+  customer_id: number;
+  customer_name: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
