@@ -1,64 +1,65 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
+import * as Crypto from "expo-crypto";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, FlatList, Pressable, StyleSheet, View } from "react-native";
 
-import { FormField } from '@/components/form-field';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { TopAppBar } from '@/components/top-app-bar';
-import { Fonts } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { addProduct, editProduct, fetchProductById } from '@/controllers/productController';
-import { fetchCategories } from '@/controllers/categoryController';
-import type { Category } from '@/models/types';
+import { FormField } from "@/components/form-field";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { TopAppBar } from "@/components/top-app-bar";
+import { Fonts } from "@/constants/theme";
+import { fetchCategories } from "@/controllers/categoryController";
+import {
+  addProduct,
+  editProduct,
+  fetchProductById,
+} from "@/controllers/productController";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import type { Category } from "@/models/types";
 
 export default function ProductFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ productId?: string }>();
   const productId = useMemo(
     () => (params.productId ? Number.parseInt(params.productId, 10) : null),
-    [params.productId]
+    [params.productId],
   );
   const colorScheme = useColorScheme();
   const palette = useMemo(
     () =>
-      colorScheme === 'dark'
+      colorScheme === "dark"
         ? {
-            background: '#0f1420',
-            surface: '#151b2a',
-            surfaceAlt: '#1d2638',
-            border: '#2f3a52',
-            primary: '#8db1ff',
-            text: '#e9eefc',
-            muted: '#9aa6bf',
-            error: '#ff7b7b',
+            background: "#0f1420",
+            surface: "#151b2a",
+            surfaceAlt: "#1d2638",
+            border: "#2f3a52",
+            primary: "#8db1ff",
+            text: "#e9eefc",
+            muted: "#9aa6bf",
+            error: "#ff7b7b",
           }
         : {
-            background: '#f9f9ff',
-            surface: '#ffffff',
-            surfaceAlt: '#e7eeff',
-            border: '#c3c6d7',
-            primary: '#004ac6',
-            text: '#111c2d',
-            muted: '#6b7080',
-            error: '#ba1a1a',
+            background: "#f9f9ff",
+            surface: "#ffffff",
+            surfaceAlt: "#e7eeff",
+            border: "#c3c6d7",
+            primary: "#004ac6",
+            text: "#111c2d",
+            muted: "#6b7080",
+            error: "#ba1a1a",
           },
-    [colorScheme]
+    [colorScheme],
   );
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-  const [barcode, setBarcode] = useState('');
-  const [productName, setProductName] = useState('');
-  const [sellingPrice, setSellingPrice] = useState('');
-  const [productImage, setProductImage] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
+  const [barcode, setBarcode] = useState("");
+  const [productName, setProductName] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
+  const [productImage, setProductImage] = useState("");
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,7 +71,7 @@ export default function ProductFormScreen() {
     } catch (error) {
       setCategories([]);
       setCategoryError(
-        error instanceof Error ? error.message : 'Unable to load categories.'
+        error instanceof Error ? error.message : "Unable to load categories.",
       );
     }
   }, []);
@@ -78,16 +79,16 @@ export default function ProductFormScreen() {
   useFocusEffect(
     useCallback(() => {
       loadCategories();
-    }, [loadCategories])
+    }, [loadCategories]),
   );
 
   useEffect(() => {
     if (!productId) {
       setSelectedCategoryId(null);
-      setBarcode('');
-      setProductName('');
-      setSellingPrice('');
-      setProductImage('');
+      setBarcode("");
+      setProductName("");
+      setSellingPrice("");
+      setProductImage("");
       return;
     }
 
@@ -102,33 +103,32 @@ export default function ProductFormScreen() {
     });
   }, [productId]);
 
+  const generateBarcode = () =>
+    Crypto.randomUUID().replace(/-/g, "").toUpperCase();
+
   const handleSave = async () => {
     if (!productName.trim()) {
-      Alert.alert('Missing name', 'Please enter a product name.');
-      return;
-    }
-
-    if (!barcode.trim()) {
-      Alert.alert('Missing barcode', 'Please enter a barcode.');
+      Alert.alert("Missing name", "Please enter a product name.");
       return;
     }
 
     const priceValue = Number.parseFloat(sellingPrice);
     if (Number.isNaN(priceValue)) {
-      Alert.alert('Invalid price', 'Please enter a valid price.');
+      Alert.alert("Invalid price", "Please enter a valid price.");
       return;
     }
 
     if (!productImage.trim()) {
-      Alert.alert('Missing image', 'Please enter an image URL or file path.');
+      Alert.alert("Missing image", "Please enter an image URL or file path.");
       return;
     }
 
     setIsSaving(true);
     try {
+      const barcodeValue = barcode.trim() || generateBarcode();
       const payload = {
         category_id: selectedCategoryId,
-        barcode: barcode.trim(),
+        barcode: barcodeValue,
         product_name: productName.trim(),
         selling_price: priceValue,
         product_image: productImage.trim(),
@@ -147,25 +147,36 @@ export default function ProductFormScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
+    <ThemedView
+      style={[styles.container, { backgroundColor: palette.background }]}
+    >
       <TopAppBar title="SariSari Hub" subtitle="Inventory Management" />
 
       <View style={styles.content}>
         <View style={styles.header}>
           <ThemedText style={[styles.title, { color: palette.text }]}>
-            {productId ? 'Edit product' : 'Add product'}
+            {productId ? "Edit product" : "Add product"}
           </ThemedText>
-          <ThemedText style={[styles.subtitle, { color: palette.muted }]}>Pricing and details</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: palette.muted }]}>
+            Pricing and details
+          </ThemedText>
         </View>
 
-        <ThemedView style={[styles.card, { borderColor: palette.border }]} lightColor={palette.surface} darkColor={palette.surface}>
-          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>Category</ThemedText>
-          <ThemedText style={[styles.helperText, { color: palette.muted }]}
-          >
+        <ThemedView
+          style={[styles.card, { borderColor: palette.border }]}
+          lightColor={palette.surface}
+          darkColor={palette.surface}
+        >
+          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>
+            Category
+          </ThemedText>
+          <ThemedText style={[styles.helperText, { color: palette.muted }]}>
             Tap to select a category (optional).
           </ThemedText>
           {categoryError ? (
-            <ThemedText style={[styles.errorText, { color: palette.error }]}>{categoryError}</ThemedText>
+            <ThemedText style={[styles.errorText, { color: palette.error }]}>
+              {categoryError}
+            </ThemedText>
           ) : null}
           <FlatList
             data={categories}
@@ -180,8 +191,12 @@ export default function ProductFormScreen() {
                   style={[
                     styles.categoryChip,
                     {
-                      borderColor: isSelected ? palette.primary : palette.border,
-                      backgroundColor: isSelected ? palette.surfaceAlt : 'transparent',
+                      borderColor: isSelected
+                        ? palette.primary
+                        : palette.border,
+                      backgroundColor: isSelected
+                        ? palette.surfaceAlt
+                        : "transparent",
                     },
                   ]}
                   onPress={() => setSelectedCategoryId(item.category_id)}
@@ -195,14 +210,17 @@ export default function ProductFormScreen() {
           />
         </ThemedView>
 
-        <ThemedView style={[styles.card, { borderColor: palette.border }]} lightColor={palette.surface} darkColor={palette.surface}>
-          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>Product details</ThemedText>
-          <FormField
-            label="Barcode"
-            value={barcode}
-            onChangeText={setBarcode}
-            placeholder="1234567890"
-          />
+        <ThemedView
+          style={[styles.card, { borderColor: palette.border }]}
+          lightColor={palette.surface}
+          darkColor={palette.surface}
+        >
+          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>
+            Product details
+          </ThemedText>
+          <ThemedText style={[styles.helperText, { color: palette.muted }]}>
+            A QR code will be generated automatically when you save.
+          </ThemedText>
           <FormField
             label="Product name"
             value={productName}
@@ -231,14 +249,16 @@ export default function ProductFormScreen() {
             disabled={isSaving}
           >
             <ThemedText style={styles.saveButtonText}>
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? "Saving..." : "Save"}
             </ThemedText>
           </Pressable>
           <Pressable
             style={[styles.clearButton, { borderColor: palette.border }]}
             onPress={() => setSelectedCategoryId(null)}
           >
-            <ThemedText style={{ color: palette.text }}>Clear category</ThemedText>
+            <ThemedText style={{ color: palette.text }}>
+              Clear category
+            </ThemedText>
           </Pressable>
         </View>
       </View>
@@ -273,7 +293,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionLabel: {
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     fontSize: 11,
     letterSpacing: 1.2,
   },
@@ -299,19 +319,19 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 12,
   },
   saveButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 12,
     letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   clearButton: {
     borderWidth: 1,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
 });

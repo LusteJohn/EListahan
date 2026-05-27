@@ -37,7 +37,6 @@ export default function ProductsScreen() {
     null,
   );
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const [barcode, setBarcode] = useState("");
   const [productName, setProductName] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [productImage, setProductImage] = useState("");
@@ -92,6 +91,23 @@ export default function ProductsScreen() {
     );
   }, [categories, selectedCategoryId]);
 
+  const buildBarcode = (
+    name: string,
+    priceValue: number,
+    categoryId: number | null,
+  ) => {
+    const normalizedName = name
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    const priceToken = Math.round(priceValue * 100).toString();
+    const categoryToken = categoryId === null ? "NA" : String(categoryId);
+    return [normalizedName, priceToken, categoryToken]
+      .filter(Boolean)
+      .join("-");
+  };
+
   const loadProducts = useCallback(() => {
     setIsLoading(true);
     fetchProducts()
@@ -123,7 +139,6 @@ export default function ProductsScreen() {
     setEditingProduct(null);
     setSelectedCategoryId(null);
     setIsCategoryMenuOpen(false);
-    setBarcode("");
     setProductName("");
     setSellingPrice("");
     setProductImage("");
@@ -144,7 +159,6 @@ export default function ProductsScreen() {
     setEditingProduct(product);
     setSelectedCategoryId(product.category_id ?? null);
     setIsCategoryMenuOpen(false);
-    setBarcode(product.barcode);
     setProductName(product.product_name);
     setSellingPrice(String(product.selling_price));
     setProductImage(product.product_image);
@@ -173,11 +187,6 @@ export default function ProductsScreen() {
       return;
     }
 
-    if (!barcode.trim()) {
-      Alert.alert("Missing barcode", "Please enter a barcode.");
-      return;
-    }
-
     const priceValue = Number.parseFloat(sellingPrice);
     if (Number.isNaN(priceValue)) {
       Alert.alert("Invalid price", "Please enter a valid price.");
@@ -191,9 +200,14 @@ export default function ProductsScreen() {
 
     setIsSaving(true);
     try {
+      const barcodeValue = buildBarcode(
+        productName,
+        priceValue,
+        selectedCategoryId,
+      );
       const payload = {
         category_id: selectedCategoryId,
-        barcode: barcode.trim(),
+        barcode: barcodeValue,
         product_name: productName.trim(),
         selling_price: priceValue,
         product_image: productImage.trim(),
@@ -432,12 +446,10 @@ export default function ProductsScreen() {
                 </View>
               ) : null}
 
-              <FormField
-                label="Barcode"
-                value={barcode}
-                onChangeText={setBarcode}
-                placeholder="1234567890"
-              />
+              <ThemedText style={[styles.helperText, { color: palette.muted }]}>
+                A barcode will be generated from the product details when you
+                save.
+              </ThemedText>
               <FormField
                 label="Product name"
                 value={productName}
@@ -638,6 +650,10 @@ const styles = StyleSheet.create({
   dropdownItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  helperText: {
+    marginTop: -2,
+    fontSize: 12,
   },
   modalActions: {
     flexDirection: "row",
