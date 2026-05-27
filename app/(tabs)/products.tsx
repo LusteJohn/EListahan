@@ -323,21 +323,29 @@ export default function ProductsScreen() {
                 lightColor={palette.surface}
                 darkColor={palette.surface}
               >
-                <View
-                  style={[
-                    styles.imagePlaceholder,
-                    {
-                      backgroundColor: palette.surfaceAlt,
-                      borderColor: palette.border,
-                    },
-                  ]}
-                >
-                  <ThemedText
-                    style={[styles.qtyBadge, { color: palette.muted }]}
+                {item.product_image ? (
+                  <Image
+                    source={{ uri: item.product_image }}
+                    style={styles.imagePreview}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.imagePlaceholder,
+                      {
+                        backgroundColor: palette.surfaceAlt,
+                        borderColor: palette.border,
+                      },
+                    ]}
                   >
-                    QTY
-                  </ThemedText>
-                </View>
+                    <ThemedText
+                      style={[styles.qtyBadge, { color: palette.muted }]}
+                    >
+                      QTY
+                    </ThemedText>
+                  </View>
+                )}
                 <ThemedText
                   style={[styles.cardLabel, { color: palette.muted }]}
                 >
