@@ -1,4 +1,6 @@
 import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
@@ -106,6 +108,38 @@ export default function ProductsScreen() {
     return [normalizedName, priceToken, categoryToken]
       .filter(Boolean)
       .join("-");
+  };
+
+  const pickImage = async (source: "camera" | "library") => {
+    const permissionResult =
+      source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission needed",
+        source === "camera"
+          ? "Camera permission is required to take a photo."
+          : "Photo library permission is required to select an image.",
+      );
+      return;
+    }
+
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            quality: 0.8,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            quality: 0.8,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          });
+
+    if (!result.canceled && result.assets[0]?.uri) {
+      setProductImage(result.assets[0].uri);
+    }
   };
 
   const loadProducts = useCallback(() => {
@@ -469,6 +503,31 @@ export default function ProductsScreen() {
                 onChangeText={setProductImage}
                 placeholder="Image URL or path"
               />
+              <View style={styles.imageActions}>
+                <Pressable
+                  style={[styles.imageButton, { borderColor: palette.border }]}
+                  onPress={() => pickImage("camera")}
+                >
+                  <ThemedText style={{ color: palette.text }}>
+                    Take photo
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  style={[styles.imageButton, { borderColor: palette.border }]}
+                  onPress={() => pickImage("library")}
+                >
+                  <ThemedText style={{ color: palette.text }}>
+                    Upload photo
+                  </ThemedText>
+                </Pressable>
+              </View>
+              {productImage ? (
+                <Image
+                  source={{ uri: productImage }}
+                  style={styles.imagePreview}
+                  contentFit="cover"
+                />
+              ) : null}
             </ScrollView>
             <View style={styles.modalActions}>
               <Pressable
@@ -654,6 +713,21 @@ const styles = StyleSheet.create({
   helperText: {
     marginTop: -2,
     fontSize: 12,
+  },
+  imageActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  imageButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  imagePreview: {
+    width: "100%",
+    height: 160,
+    borderRadius: 8,
   },
   modalActions: {
     flexDirection: "row",
