@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 let didInit = false;
@@ -37,6 +37,13 @@ async function initDb(db: SQLite.SQLiteDatabase) {
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (category_id) REFERENCES category(category_id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS customers (
+      customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_name TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+      )
   `);
 
   didInit = true;
@@ -44,7 +51,7 @@ async function initDb(db: SQLite.SQLiteDatabase) {
 
 export async function getDb() {
   if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync('store.db');
+    dbPromise = SQLite.openDatabaseAsync("store.db");
   }
 
   const db = await dbPromise;
