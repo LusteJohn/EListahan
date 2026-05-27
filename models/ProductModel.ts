@@ -1,5 +1,5 @@
-import { getDb } from './db';
-import type { Product } from './types';
+import { getDb } from "./db";
+import type { Product } from "./types";
 
 export async function listProducts() {
   const db = await getDb();
@@ -23,7 +23,8 @@ export async function listProducts() {
 
 export async function getProductById(productId: number) {
   const db = await getDb();
-  const row = await db.getFirstAsync<Product>(`
+  const row = await db.getFirstAsync<Product>(
+    `
     SELECT
       p.product_id,
       p.category_id,
@@ -38,11 +39,17 @@ export async function getProductById(productId: number) {
     LEFT JOIN category c ON c.category_id = p.category_id
     WHERE p.product_id = ?
   `,
-  [productId]);
+    [productId],
+  );
   return row ?? null;
 }
 
-export async function insertProduct(product: Omit<Product, 'product_id' | 'created_at' | 'updated_at' | 'category_name'>) {
+export async function insertProduct(
+  product: Omit<
+    Product,
+    "product_id" | "created_at" | "updated_at" | "category_name"
+  >,
+) {
   const db = await getDb();
   const result = await db.runAsync(
     `
@@ -61,14 +68,17 @@ export async function insertProduct(product: Omit<Product, 'product_id' | 'creat
       product.product_name,
       product.selling_price,
       product.product_image,
-    ]
+    ],
   );
   return result.lastInsertRowId;
 }
 
 export async function updateProduct(
   productId: number,
-  product: Omit<Product, 'product_id' | 'created_at' | 'updated_at' | 'category_name'>
+  product: Omit<
+    Product,
+    "product_id" | "created_at" | "updated_at" | "category_name"
+  >,
 ) {
   const db = await getDb();
   await db.runAsync(
@@ -90,11 +100,11 @@ export async function updateProduct(
       product.selling_price,
       product.product_image,
       productId,
-    ]
+    ],
   );
 }
 
 export async function deleteProduct(productId: number) {
   const db = await getDb();
-  await db.runAsync('DELETE FROM products WHERE product_id = ?', [productId]);
+  await db.runAsync("DELETE FROM products WHERE product_id = ?", [productId]);
 }
