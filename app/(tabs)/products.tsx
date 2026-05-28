@@ -316,7 +316,8 @@ export default function ProductsScreen() {
             keyExtractor={(item) => item.product_id.toString()}
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
-            contentContainerStyle={styles.list}
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
               <ThemedView
                 style={[styles.card, { borderColor: palette.border }]}
@@ -569,6 +570,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flex: 1,
     paddingHorizontal: 20,
     paddingTop: 16,
   },
@@ -615,8 +617,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   list: {
+    flex: 1,
+  },
+  listContent: {
     gap: 14,
-    paddingBottom: 24,
+    paddingBottom: 32,
   },
   card: {
     borderWidth: 1,
