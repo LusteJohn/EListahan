@@ -31,3 +31,35 @@ export type Customer = {
   created_at?: string | null;
   updated_at?: string | null;
 };
+
+export type Sale = {
+  sale_id: number;
+  transaction_no: string;
+  customer_id: number | null;
+  payment_method: string;
+  subtotal: number;
+  total_amount: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type CustomerDebt = {
+  debt_id: number;
+  sale_id: number;
+  customer_id: number | null;
+  total_debt: number;
+  remaining_balance: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type SaleItem = {
+  sale_item_id: number;
+  sale_id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+  total: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+};

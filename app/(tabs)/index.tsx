@@ -100,6 +100,23 @@ export default function HomeScreen() {
               Record new inventory
             </ThemedText>
           </Pressable>
+          <Pressable
+            style={[
+              styles.actionCard,
+              { borderColor: palette.border, backgroundColor: palette.surface },
+            ]}
+            onPress={() => router.push("/sale-form")}
+          >
+            <ThemedText style={[styles.cardLabel, { color: palette.muted }]}>
+              Sale
+            </ThemedText>
+            <ThemedText style={[styles.cardTitle, { color: palette.text }]}>
+              New sale
+            </ThemedText>
+            <ThemedText style={[styles.actionHint, { color: palette.muted }]}>
+              Capture customer items
+            </ThemedText>
+          </Pressable>
         </View>
 
         <View

@@ -33,6 +33,10 @@ export default function RootLayout() {
           name="product-form"
           options={{ presentation: "modal", title: "Product" }}
         />
+        <Stack.Screen
+          name="sale-form"
+          options={{ presentation: "modal", title: "Sale" }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
