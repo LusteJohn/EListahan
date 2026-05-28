@@ -11,7 +11,6 @@ import {
     View,
 } from "react-native";
 
-import { FormField } from "@/components/form-field";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { TopAppBar } from "@/components/top-app-bar";
@@ -63,7 +62,9 @@ export default function SaleFormScreen() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(
     null,
   );
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "debt" | "">("");
+  const [isCustomerMenuOpen, setIsCustomerMenuOpen] = useState(false);
+  const [isPaymentMenuOpen, setIsPaymentMenuOpen] = useState(false);
   const [productQuery, setProductQuery] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +105,22 @@ export default function SaleFormScreen() {
         .includes(trimmed),
     );
   }, [productQuery, products]);
+
+  const selectedCustomerLabel = useMemo(() => {
+    if (!selectedCustomerId) {
+      return "Select customer";
+    }
+    return (
+      customers.find((item) => item.customer_id === selectedCustomerId)
+        ?.customer_name ?? "Select customer"
+    );
+  }, [customers, selectedCustomerId]);
+
+  const selectedPaymentLabel = paymentMethod
+    ? paymentMethod === "cash"
+      ? "Cash"
+      : "Debt"
+    : "Select payment method";
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => {
@@ -151,7 +168,7 @@ export default function SaleFormScreen() {
 
   const handleSave = async () => {
     if (!paymentMethod.trim()) {
-      Alert.alert("Missing payment method", "Please enter a payment method.");
+      Alert.alert("Missing payment method", "Please select a payment method.");
       return;
     }
 
@@ -229,41 +246,60 @@ export default function SaleFormScreen() {
           <ThemedText style={[styles.helperText, { color: palette.muted }]}>
             Tap to assign a customer (required for debt).
           </ThemedText>
-          <FlatList
-            data={customers}
-            keyExtractor={(item) => item.customer_id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipList}
-            renderItem={({ item }) => {
-              const isSelected = item.customer_id === selectedCustomerId;
-              return (
-                <Pressable
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: isSelected
-                        ? palette.primary
-                        : palette.border,
-                      backgroundColor: isSelected
-                        ? palette.surfaceAlt
-                        : "transparent",
-                    },
-                  ]}
-                  onPress={() => setSelectedCustomerId(item.customer_id)}
-                >
-                  <ThemedText style={{ color: palette.text }}>
-                    {item.customer_name}
-                  </ThemedText>
-                </Pressable>
-              );
-            }}
-            ListEmptyComponent={
-              <ThemedText style={{ color: palette.muted }}>
-                No customers yet.
-              </ThemedText>
-            }
-          />
+          <Pressable
+            style={[
+              styles.dropdownTrigger,
+              { borderColor: palette.border, backgroundColor: palette.surface },
+            ]}
+            onPress={() => setIsCustomerMenuOpen((prev) => !prev)}
+          >
+            <ThemedText style={{ color: palette.text }}>
+              {selectedCustomerLabel}
+            </ThemedText>
+            <ThemedText style={{ color: palette.muted }}>
+              {isCustomerMenuOpen ? "Hide" : "Select"}
+            </ThemedText>
+          </Pressable>
+          {isCustomerMenuOpen ? (
+            <View
+              style={[
+                styles.dropdownList,
+                {
+                  borderColor: palette.border,
+                  backgroundColor: palette.surface,
+                },
+              ]}
+            >
+              {customers.length === 0 ? (
+                <ThemedText style={{ color: palette.muted }}>
+                  No customers yet.
+                </ThemedText>
+              ) : (
+                customers.map((item) => (
+                  <Pressable
+                    key={item.customer_id}
+                    style={[
+                      styles.dropdownItem,
+                      {
+                        backgroundColor:
+                          item.customer_id === selectedCustomerId
+                            ? palette.surfaceAlt
+                            : "transparent",
+                      },
+                    ]}
+                    onPress={() => {
+                      setSelectedCustomerId(item.customer_id);
+                      setIsCustomerMenuOpen(false);
+                    }}
+                  >
+                    <ThemedText style={{ color: palette.text }}>
+                      {item.customer_name}
+                    </ThemedText>
+                  </Pressable>
+                ))
+              )}
+            </View>
+          ) : null}
         </ThemedView>
 
         <ThemedView
@@ -274,12 +310,54 @@ export default function SaleFormScreen() {
           <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>
             Payment
           </ThemedText>
-          <FormField
-            label="Payment method"
-            value={paymentMethod}
-            onChangeText={setPaymentMethod}
-            placeholder="cash, gcash, debt"
-          />
+          <Pressable
+            style={[
+              styles.dropdownTrigger,
+              { borderColor: palette.border, backgroundColor: palette.surface },
+            ]}
+            onPress={() => setIsPaymentMenuOpen((prev) => !prev)}
+          >
+            <ThemedText style={{ color: palette.text }}>
+              {selectedPaymentLabel}
+            </ThemedText>
+            <ThemedText style={{ color: palette.muted }}>
+              {isPaymentMenuOpen ? "Hide" : "Select"}
+            </ThemedText>
+          </Pressable>
+          {isPaymentMenuOpen ? (
+            <View
+              style={[
+                styles.dropdownList,
+                {
+                  borderColor: palette.border,
+                  backgroundColor: palette.surface,
+                },
+              ]}
+            >
+              {["cash", "debt"].map((option) => (
+                <Pressable
+                  key={option}
+                  style={[
+                    styles.dropdownItem,
+                    {
+                      backgroundColor:
+                        option === paymentMethod
+                          ? palette.surfaceAlt
+                          : "transparent",
+                    },
+                  ]}
+                  onPress={() => {
+                    setPaymentMethod(option as "cash" | "debt");
+                    setIsPaymentMenuOpen(false);
+                  }}
+                >
+                  <ThemedText style={{ color: palette.text }}>
+                    {option === "cash" ? "Cash" : "Debt"}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
         </ThemedView>
 
         <ThemedView
@@ -455,15 +533,26 @@ const styles = StyleSheet.create({
   helperText: {
     fontSize: 12,
   },
-  chipList: {
-    gap: 8,
-    paddingVertical: 6,
-  },
-  chip: {
+  dropdownTrigger: {
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dropdownList: {
+    borderWidth: 1,
+    borderRadius: 6,
+    marginTop: 8,
+    padding: 8,
+    gap: 6,
+  },
+  dropdownItem: {
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   searchRow: {
     borderWidth: 1,
