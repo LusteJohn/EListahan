@@ -15,6 +15,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { TopAppBar } from "@/components/top-app-bar";
 import { Fonts } from "@/constants/theme";
+import { fetchCategories } from "@/controllers/categoryController";
 import { fetchCustomers } from "@/controllers/customerController";
 import { fetchProducts } from "@/controllers/productController";
 import {
@@ -22,7 +23,7 @@ import {
   fetchSales,
 } from "@/controllers/salesController";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import type { Customer, Product, Sale } from "@/models/types";
+import type { Category, Customer, Product, Sale } from "@/models/types";
 
 const buildTransactionNo = () => `TRX-${Date.now()}`;
 
@@ -33,6 +34,7 @@ type CartItem = {
 
 export default function SalesScreen() {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +46,10 @@ export default function SalesScreen() {
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "debt" | "">("");
   const [isCustomerMenuOpen, setIsCustomerMenuOpen] = useState(false);
   const [isPaymentMenuOpen, setIsPaymentMenuOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [productQuery, setProductQuery] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -101,15 +107,20 @@ export default function SalesScreen() {
 
   const filteredProducts = useMemo(() => {
     const trimmed = productQuery.trim().toLowerCase();
-    if (!trimmed) {
-      return products;
-    }
-    return products.filter((item) =>
-      [item.product_name, item.barcode]
+    return products.filter((item) => {
+      const matchesCategory =
+        selectedCategoryId === null || item.category_id === selectedCategoryId;
+      if (!matchesCategory) {
+        return false;
+      }
+      if (!trimmed) {
+        return true;
+      }
+      return [item.product_name, item.barcode]
         .join(" ")
         .toLowerCase()
-        .includes(trimmed),
-    );
+        .includes(trimmed);
+    });
   }, [productQuery, products]);
 
   const selectedCustomerLabel = useMemo(() => {
@@ -127,6 +138,16 @@ export default function SalesScreen() {
       ? "Cash"
       : "Debt"
     : "Select payment method";
+
+  const selectedCategoryLabel = useMemo(() => {
+    if (selectedCategoryId === null) {
+      return "All categories";
+    }
+    return (
+      categories.find((item) => item.category_id === selectedCategoryId)
+        ?.category_name ?? "All categories"
+    );
+  }, [categories, selectedCategoryId]);
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => {
@@ -155,19 +176,24 @@ export default function SalesScreen() {
     setPaymentMethod("");
     setIsCustomerMenuOpen(false);
     setIsPaymentMenuOpen(false);
+    setSelectedCategoryId(null);
+    setIsCategoryMenuOpen(false);
     setProductQuery("");
     setCartItems([]);
     setIsModalVisible(true);
     try {
-      const [customersData, productsData] = await Promise.all([
+      const [customersData, productsData, categoriesData] = await Promise.all([
         fetchCustomers(),
         fetchProducts(),
+        fetchCategories(),
       ]);
       setCustomers(customersData);
       setProducts(productsData);
+      setCategories(categoriesData);
     } catch (error) {
       setCustomers([]);
       setProducts([]);
+      setCategories([]);
       Alert.alert(
         "Unable to load data",
         error instanceof Error ? error.message : "Please try again.",
@@ -179,6 +205,7 @@ export default function SalesScreen() {
     setIsModalVisible(false);
     setIsCustomerMenuOpen(false);
     setIsPaymentMenuOpen(false);
+    setIsCategoryMenuOpen(false);
   };
 
   const addToCart = (product: Product) => {
@@ -554,6 +581,82 @@ export default function SalesScreen() {
                 >
                   Products
                 </ThemedText>
+                <Pressable
+                  style={[
+                    styles.dropdownTrigger,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: palette.surface,
+                    },
+                  ]}
+                  onPress={() => setIsCategoryMenuOpen((prev) => !prev)}
+                >
+                  <ThemedText style={{ color: palette.text }}>
+                    {selectedCategoryLabel}
+                  </ThemedText>
+                  <ThemedText style={{ color: palette.muted }}>
+                    {isCategoryMenuOpen ? "Hide" : "Select"}
+                  </ThemedText>
+                </Pressable>
+                {isCategoryMenuOpen ? (
+                  <View
+                    style={[
+                      styles.dropdownList,
+                      {
+                        borderColor: palette.border,
+                        backgroundColor: palette.surface,
+                      },
+                    ]}
+                  >
+                    <Pressable
+                      style={[
+                        styles.dropdownItem,
+                        {
+                          backgroundColor:
+                            selectedCategoryId === null
+                              ? palette.surfaceAlt
+                              : "transparent",
+                        },
+                      ]}
+                      onPress={() => {
+                        setSelectedCategoryId(null);
+                        setIsCategoryMenuOpen(false);
+                      }}
+                    >
+                      <ThemedText style={{ color: palette.text }}>
+                        All categories
+                      </ThemedText>
+                    </Pressable>
+                    {categories.length === 0 ? (
+                      <ThemedText style={{ color: palette.muted }}>
+                        No categories yet.
+                      </ThemedText>
+                    ) : (
+                      categories.map((item) => (
+                        <Pressable
+                          key={item.category_id}
+                          style={[
+                            styles.dropdownItem,
+                            {
+                              backgroundColor:
+                                item.category_id === selectedCategoryId
+                                  ? palette.surfaceAlt
+                                  : "transparent",
+                            },
+                          ]}
+                          onPress={() => {
+                            setSelectedCategoryId(item.category_id);
+                            setIsCategoryMenuOpen(false);
+                          }}
+                        >
+                          <ThemedText style={{ color: palette.text }}>
+                            {item.category_name}
+                          </ThemedText>
+                        </Pressable>
+                      ))
+                    )}
+                  </View>
+                ) : null}
                 <View
                   style={[
                     styles.searchRow,
@@ -677,18 +780,29 @@ export default function SalesScreen() {
                 </View>
               </View>
 
-              <Pressable
-                style={[
-                  styles.saveButton,
-                  { backgroundColor: palette.primary },
-                ]}
-                onPress={handleSave}
-                disabled={isSaving}
-              >
-                <ThemedText style={styles.saveButtonText}>
-                  {isSaving ? "Saving..." : "Save sale"}
-                </ThemedText>
-              </Pressable>
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.cancelButton, { borderColor: palette.border }]}
+                  onPress={closeModal}
+                  disabled={isSaving}
+                >
+                  <ThemedText style={{ color: palette.text }}>
+                    Cancel
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.saveButton,
+                    { backgroundColor: palette.primary },
+                  ]}
+                  onPress={handleSave}
+                  disabled={isSaving}
+                >
+                  <ThemedText style={styles.saveButtonText}>
+                    {isSaving ? "Saving..." : "Save sale"}
+                  </ThemedText>
+                </Pressable>
+              </View>
             </ScrollView>
           </ThemedView>
         </View>
@@ -883,10 +997,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.rounded,
   },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    alignItems: "center",
+    paddingVertical: 12,
+    flex: 1,
+  },
   saveButton: {
     borderRadius: 6,
     alignItems: "center",
     paddingVertical: 12,
+    flex: 1,
   },
   saveButtonText: {
     color: "#ffffff",
