@@ -121,7 +121,7 @@ export default function SalesScreen() {
         .toLowerCase()
         .includes(trimmed);
     });
-  }, [productQuery, products]);
+  }, [productQuery, products, selectedCategoryId]);
 
   const selectedCustomerLabel = useMemo(() => {
     if (!selectedCustomerId) {
