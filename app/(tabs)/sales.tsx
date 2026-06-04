@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -104,6 +105,10 @@ export default function SalesScreen() {
     return new Map(
       products.map((product) => [product.product_id, product.product_name]),
     );
+  }, [products]);
+
+  const productById = useMemo(() => {
+    return new Map(products.map((p) => [p.product_id, p]));
   }, [products]);
 
   const filtered = useMemo(() => {
@@ -964,21 +969,44 @@ export default function SalesScreen() {
                       No items recorded.
                     </ThemedText>
                   ) : (
-                    saleItems.map((item) => (
-                      <View style={styles.itemRow} key={item.sale_item_id}>
-                        <View style={styles.itemInfo}>
+                    saleItems.map((item) => {
+                      const product = productById.get(item.product_id);
+                      const imageUri = product?.product_image ?? null;
+                      return (
+                        <View style={styles.itemRow} key={item.sale_item_id}>
+                          <View style={styles.itemInfoRow}>
+                            {imageUri ? (
+                              <Image
+                                source={{ uri: imageUri }}
+                                style={styles.itemImage}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.itemImagePlaceholder,
+                                  {
+                                    backgroundColor: palette.surfaceAlt,
+                                    borderColor: palette.border,
+                                  },
+                                ]}
+                              />
+                            )}
+                            <View style={styles.itemInfo}>
+                              <ThemedText style={{ color: palette.text }}>
+                                {productMap.get(item.product_id) ?? "Product"}
+                              </ThemedText>
+                              <ThemedText style={{ color: palette.muted }}>
+                                {`Qty ${item.quantity} | PHP ${item.price.toFixed(2)}`}
+                              </ThemedText>
+                            </View>
+                          </View>
                           <ThemedText style={{ color: palette.text }}>
-                            {productMap.get(item.product_id) ?? "Product"}
-                          </ThemedText>
-                          <ThemedText style={{ color: palette.muted }}>
-                            {`Qty ${item.quantity} | PHP ${item.price.toFixed(2)}`}
+                            {`PHP ${item.total.toFixed(2)}`}
                           </ThemedText>
                         </View>
-                        <ThemedText style={{ color: palette.text }}>
-                          {`PHP ${item.total.toFixed(2)}`}
-                        </ThemedText>
-                      </View>
-                    ))
+                      );
+                    })
                   )}
                 </View>
 
@@ -1105,7 +1133,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: "rgba(6, 34, 14, 0.4)",
   },
   modalCard: {
     borderWidth: 1,
@@ -1226,6 +1254,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
+  },
+  itemInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 8,
+  },
+  itemImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    backgroundColor: "transparent",
+  },
+  itemImagePlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    borderWidth: 1,
   },
   itemInfo: {
     flex: 1,
