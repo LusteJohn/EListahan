@@ -16,22 +16,22 @@ export default function HomeScreen() {
     () =>
       colorScheme === "dark"
         ? {
-            background: "#0f1420",
-            surface: "#151b2a",
-            surfaceAlt: "#1d2638",
-            border: "#2f3a52",
-            primary: "#8db1ff",
-            text: "#e9eefc",
-            muted: "#9aa6bf",
+            background: "#10150f",
+            surface: "#141c13",
+            surfaceAlt: "#1d271b",
+            border: "#2b3827",
+            primary: "#7ad87a",
+            text: "#e8f2e5",
+            muted: "#9aac97",
           }
         : {
-            background: "#f9f9ff",
+            background: "#f5f7f2",
             surface: "#ffffff",
-            surfaceAlt: "#e7eeff",
-            border: "#c3c6d7",
-            primary: "#004ac6",
-            text: "#111c2d",
-            muted: "#6b7080",
+            surfaceAlt: "#eef3e8",
+            border: "#d8e0d2",
+            primary: "#2f8f2f",
+            text: "#1f2a1e",
+            muted: "#6d7869",
           },
     [colorScheme],
   );
@@ -55,9 +55,7 @@ export default function HomeScreen() {
           >
             <TextInput
               placeholder="Scan barcode or type item name..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#7f8ca6" : "#737686"
-              }
+              placeholderTextColor={palette.muted}
               value={search}
               onChangeText={setSearch}
               style={[styles.searchInput, { color: palette.text }]}
