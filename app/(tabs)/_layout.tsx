@@ -19,8 +19,8 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#c3c6d7",
+          backgroundColor: colorScheme === "dark" ? "#141c13" : "#ffffff",
+          borderTopColor: colorScheme === "dark" ? "#2b3827" : "#d8e0d2",
           borderTopWidth: 1,
           height: 64 + insets.bottom,
           paddingBottom: 8 + insets.bottom,

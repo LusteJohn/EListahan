@@ -1,62 +1,62 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useMemo, useState } from "react";
 import {
-  Alert,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+    Alert,
+    FlatList,
+    Modal,
+    Pressable,
+    StyleSheet,
+    TextInput,
+    View,
+} from "react-native";
 
-import { FormField } from '@/components/form-field';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { TopAppBar } from '@/components/top-app-bar';
-import { Fonts } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { Category } from '@/models/types';
+import { FormField } from "@/components/form-field";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { TopAppBar } from "@/components/top-app-bar";
+import { Fonts } from "@/constants/theme";
 import {
-  addCategory,
-  editCategory,
-  fetchCategories,
-  removeCategory,
-} from '@/controllers/categoryController';
+    addCategory,
+    editCategory,
+    fetchCategories,
+    removeCategory,
+} from "@/controllers/categoryController";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import type { Category } from "@/models/types";
 
 export default function CategoriesScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryName, setCategoryName] = useState('');
+  const [categoryName, setCategoryName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const colorScheme = useColorScheme();
   const palette = useMemo(
     () =>
-      colorScheme === 'dark'
+      colorScheme === "dark"
         ? {
-            background: '#0f1420',
-            surface: '#151b2a',
-            surfaceAlt: '#1d2638',
-            border: '#2f3a52',
-            primary: '#8db1ff',
-            text: '#e9eefc',
-            muted: '#9aa6bf',
-            error: '#ff7b7b',
+            background: "#10150f",
+            surface: "#141c13",
+            surfaceAlt: "#1d271b",
+            border: "#2b3827",
+            primary: "#7ad87a",
+            text: "#e8f2e5",
+            muted: "#9aac97",
+            error: "#ff8a80",
           }
         : {
-            background: '#f9f9ff',
-            surface: '#ffffff',
-            surfaceAlt: '#e7eeff',
-            border: '#c3c6d7',
-            primary: '#004ac6',
-            text: '#111c2d',
-            muted: '#6b7080',
-            error: '#ba1a1a',
+            background: "#f5f7f2",
+            surface: "#ffffff",
+            surfaceAlt: "#eef3e8",
+            border: "#d8e0d2",
+            primary: "#2f8f2f",
+            text: "#1f2a1e",
+            muted: "#6d7869",
+            error: "#c04b3e",
           },
-    [colorScheme]
+    [colorScheme],
   );
 
   const filtered = useMemo(() => {
@@ -64,7 +64,9 @@ export default function CategoriesScreen() {
     if (!trimmed) {
       return categories;
     }
-    return categories.filter((item) => item.category_name.toLowerCase().includes(trimmed));
+    return categories.filter((item) =>
+      item.category_name.toLowerCase().includes(trimmed),
+    );
   }, [categories, query]);
 
   const loadCategories = useCallback(() => {
@@ -77,15 +79,15 @@ export default function CategoriesScreen() {
   useFocusEffect(
     useCallback(() => {
       loadCategories();
-    }, [loadCategories])
+    }, [loadCategories]),
   );
 
   const handleDelete = (categoryId: number) => {
-    Alert.alert('Delete category?', 'This will remove the category.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Delete category?", "This will remove the category.", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: "Delete",
+        style: "destructive",
         onPress: async () => {
           await removeCategory(categoryId);
           loadCategories();
@@ -96,7 +98,7 @@ export default function CategoriesScreen() {
 
   const openAddModal = () => {
     setEditingCategory(null);
-    setCategoryName('');
+    setCategoryName("");
     setIsModalVisible(true);
   };
 
@@ -109,12 +111,12 @@ export default function CategoriesScreen() {
   const closeModal = () => {
     setIsModalVisible(false);
     setEditingCategory(null);
-    setCategoryName('');
+    setCategoryName("");
   };
 
   const handleSave = async () => {
     if (!categoryName.trim()) {
-      Alert.alert('Missing name', 'Please enter a category name.');
+      Alert.alert("Missing name", "Please enter a category name.");
       return;
     }
 
@@ -133,14 +135,20 @@ export default function CategoriesScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
+    <ThemedView
+      style={[styles.container, { backgroundColor: palette.background }]}
+    >
       <TopAppBar title="SariSari Hub" subtitle="Inventory Management" />
 
       <View style={styles.content}>
         <View style={styles.header}>
           <View>
-            <ThemedText style={[styles.title, { color: palette.text }]}>Categories</ThemedText>
-            <ThemedText style={[styles.subtitle, { color: palette.muted }]}>Group your inventory</ThemedText>
+            <ThemedText style={[styles.title, { color: palette.text }]}>
+              Categories
+            </ThemedText>
+            <ThemedText style={[styles.subtitle, { color: palette.muted }]}>
+              Group your inventory
+            </ThemedText>
           </View>
           <Pressable
             style={[styles.addButton, { backgroundColor: palette.primary }]}
@@ -151,12 +159,18 @@ export default function CategoriesScreen() {
         </View>
 
         <View style={styles.section}>
-          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>Search</ThemedText>
-          <View style={[styles.searchRow, { borderColor: palette.border, backgroundColor: palette.surface }]}
+          <ThemedText style={[styles.sectionLabel, { color: palette.muted }]}>
+            Search
+          </ThemedText>
+          <View
+            style={[
+              styles.searchRow,
+              { borderColor: palette.border, backgroundColor: palette.surface },
+            ]}
           >
             <TextInput
               placeholder="Find a category"
-              placeholderTextColor={colorScheme === 'dark' ? '#7f8ca6' : '#737686'}
+              placeholderTextColor={palette.muted}
               value={query}
               onChangeText={setQuery}
               style={[styles.searchInput, { color: palette.text }]}
@@ -165,7 +179,9 @@ export default function CategoriesScreen() {
         </View>
 
         {filtered.length === 0 && !isLoading ? (
-          <ThemedText style={[styles.emptyText, { color: palette.muted }]}>No categories yet.</ThemedText>
+          <ThemedText style={[styles.emptyText, { color: palette.muted }]}>
+            No categories yet.
+          </ThemedText>
         ) : (
           <FlatList
             data={filtered}
@@ -178,23 +194,39 @@ export default function CategoriesScreen() {
                 darkColor={palette.surface}
               >
                 <View style={styles.cardHeader}>
-                  <ThemedText style={[styles.cardLabel, { color: palette.muted }]}>Category</ThemedText>
-                  <ThemedText style={[styles.cardTitle, { color: palette.text }]}>
+                  <ThemedText
+                    style={[styles.cardLabel, { color: palette.muted }]}
+                  >
+                    Category
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.cardTitle, { color: palette.text }]}
+                  >
                     {item.category_name}
                   </ThemedText>
                 </View>
                 <View style={styles.actions}>
                   <Pressable
-                    style={[styles.actionButton, { borderColor: palette.border }]}
+                    style={[
+                      styles.actionButton,
+                      { borderColor: palette.border },
+                    ]}
                     onPress={() => openEditModal(item)}
                   >
-                    <ThemedText style={{ color: palette.text }}>Edit</ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      Edit
+                    </ThemedText>
                   </Pressable>
                   <Pressable
-                    style={[styles.actionButton, { borderColor: palette.error }]}
+                    style={[
+                      styles.actionButton,
+                      { borderColor: palette.error },
+                    ]}
                     onPress={() => handleDelete(item.category_id)}
                   >
-                    <ThemedText style={{ color: palette.error }}>Delete</ThemedText>
+                    <ThemedText style={{ color: palette.error }}>
+                      Delete
+                    </ThemedText>
                   </Pressable>
                 </View>
               </ThemedView>
@@ -216,9 +248,8 @@ export default function CategoriesScreen() {
             lightColor={palette.surface}
             darkColor={palette.surface}
           >
-            <ThemedText style={[styles.modalTitle, { color: palette.text }]}
-            >
-              {editingCategory ? 'Edit category' : 'Add category'}
+            <ThemedText style={[styles.modalTitle, { color: palette.text }]}>
+              {editingCategory ? "Edit category" : "Add category"}
             </ThemedText>
             <FormField
               label="Category name"
@@ -234,12 +265,15 @@ export default function CategoriesScreen() {
                 <ThemedText style={{ color: palette.text }}>Cancel</ThemedText>
               </Pressable>
               <Pressable
-                style={[styles.modalButton, { backgroundColor: palette.primary }]}
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: palette.primary },
+                ]}
                 onPress={handleSave}
                 disabled={isSaving}
               >
                 <ThemedText style={styles.modalButtonText}>
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? "Saving..." : "Save"}
                 </ThemedText>
               </Pressable>
             </View>
@@ -259,9 +293,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   title: {
@@ -277,17 +311,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   addButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 12,
     letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   section: {
     gap: 8,
     marginBottom: 16,
   },
   sectionLabel: {
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     fontSize: 11,
     letterSpacing: 1.2,
   },
@@ -314,7 +348,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardLabel: {
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     fontSize: 11,
     letterSpacing: 1.2,
   },
@@ -323,7 +357,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.rounded,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   actionButton: {
@@ -337,12 +371,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 20, 32, 0.4)',
+    backgroundColor: "rgba(15, 20, 32, 0.4)",
   },
   modalCard: {
     borderWidth: 1,
@@ -355,8 +389,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.rounded,
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 10,
   },
   modalButton: {
@@ -366,9 +400,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   modalButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 12,
     letterSpacing: 1.1,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
 });

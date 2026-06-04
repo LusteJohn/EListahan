@@ -18,18 +18,18 @@ export function TopAppBar({ title, subtitle }: TopAppBarProps) {
   const palette =
     colorScheme === "dark"
       ? {
-          surface: "#ffffff",
-          border: "#c3c6d7",
-          primary: "#004ac6",
-          text: "#111c2d",
-          muted: "#6b7080",
+          surface: "#141c13",
+          border: "#2b3827",
+          primary: "#7ad87a",
+          text: "#e8f2e5",
+          muted: "#9aac97",
         }
       : {
           surface: "#ffffff",
-          border: "#c3c6d7",
-          primary: "#004ac6",
-          text: "#111c2d",
-          muted: "#6b7080",
+          border: "#d8e0d2",
+          primary: "#2f8f2f",
+          text: "#1f2a1e",
+          muted: "#6d7869",
         };
 
   return (

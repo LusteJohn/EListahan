@@ -1,17 +1,16 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 type FormFieldProps = {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  keyboardType?: 'default' | 'numeric';
+  keyboardType?: "default" | "numeric";
 };
 
 export function FormField({
@@ -19,21 +18,25 @@ export function FormField({
   value,
   onChangeText,
   placeholder,
-  keyboardType = 'default',
+  keyboardType = "default",
 }: FormFieldProps) {
   const colorScheme = useColorScheme();
-  const borderColor = colorScheme === 'dark' ? '#2f3a52' : '#c3c6d7';
-  const inputBackground = colorScheme === 'dark' ? '#151b2a' : '#ffffff';
-  const textColor = useThemeColor({}, 'text');
+  const borderColor = colorScheme === "dark" ? "#2b3827" : "#d8e0d2";
+  const inputBackground = colorScheme === "dark" ? "#141c13" : "#ffffff";
+  const textColor = useThemeColor({}, "text");
 
   return (
     <ThemedView style={styles.fieldWrapper}>
       <ThemedText style={styles.label}>{label}</ThemedText>
-      <View style={[styles.inputWrapper, { borderColor, backgroundColor: inputBackground }]}
+      <View
+        style={[
+          styles.inputWrapper,
+          { borderColor, backgroundColor: inputBackground },
+        ]}
       >
         <TextInput
           placeholder={placeholder}
-          placeholderTextColor={colorScheme === 'dark' ? '#999999' : '#777777'}
+          placeholderTextColor={colorScheme === "dark" ? "#9aac97" : "#6d7869"}
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
@@ -51,7 +54,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1.2,
     opacity: 0.7,
   },
