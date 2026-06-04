@@ -18,12 +18,19 @@ import { Fonts } from "@/constants/theme";
 import { fetchCategories } from "@/controllers/categoryController";
 import { fetchCustomers } from "@/controllers/customerController";
 import { fetchProducts } from "@/controllers/productController";
+import { fetchSaleItemsBySale } from "@/controllers/saleItemsController";
 import {
   createSaleTransaction,
   fetchSales,
 } from "@/controllers/salesController";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import type { Category, Customer, Product, Sale } from "@/models/types";
+import type {
+  Category,
+  Customer,
+  Product,
+  Sale,
+  SaleItem,
+} from "@/models/types";
 
 const buildTransactionNo = () => `TRX-${Date.now()}`;
 
@@ -40,6 +47,10 @@ export default function SalesScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(
     null,
   );
@@ -88,6 +99,12 @@ export default function SalesScreen() {
       ]),
     );
   }, [customers]);
+
+  const productMap = useMemo(() => {
+    return new Map(
+      products.map((product) => [product.product_id, product.product_name]),
+    );
+  }, [products]);
 
   const filtered = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
@@ -206,6 +223,36 @@ export default function SalesScreen() {
     setIsCustomerMenuOpen(false);
     setIsPaymentMenuOpen(false);
     setIsCategoryMenuOpen(false);
+  };
+
+  const closeDetails = () => {
+    setIsDetailsVisible(false);
+    setSelectedSale(null);
+    setSaleItems([]);
+  };
+
+  const openDetails = async (sale: Sale) => {
+    setSelectedSale(sale);
+    setIsDetailsVisible(true);
+    setIsDetailsLoading(true);
+    try {
+      const [items, productsData] = await Promise.all([
+        fetchSaleItemsBySale(sale.sale_id),
+        products.length === 0 ? fetchProducts() : Promise.resolve(products),
+      ]);
+      setSaleItems(items);
+      if (products.length === 0) {
+        setProducts(productsData);
+      }
+    } catch (error) {
+      setSaleItems([]);
+      Alert.alert(
+        "Unable to load details",
+        error instanceof Error ? error.message : "Please try again.",
+      );
+    } finally {
+      setIsDetailsLoading(false);
+    }
   };
 
   const addToCart = (product: Product) => {
@@ -419,6 +466,22 @@ export default function SalesScreen() {
                       {created}
                     </ThemedText>
                   ) : null}
+                  <View style={styles.cardActions}>
+                    <Pressable
+                      style={[
+                        styles.detailsButton,
+                        {
+                          borderColor: palette.border,
+                          backgroundColor: palette.surfaceAlt,
+                        },
+                      ]}
+                      onPress={() => openDetails(item)}
+                    >
+                      <ThemedText style={{ color: palette.text }}>
+                        View details
+                      </ThemedText>
+                    </Pressable>
+                  </View>
                 </ThemedView>
               );
             }}
@@ -807,6 +870,144 @@ export default function SalesScreen() {
           </ThemedView>
         </View>
       </Modal>
+
+      <Modal
+        transparent
+        visible={isDetailsVisible}
+        animationType="fade"
+        onRequestClose={closeDetails}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={closeDetails} />
+          <ThemedView
+            style={[styles.modalCard, { borderColor: palette.border }]}
+            lightColor={palette.surface}
+            darkColor={palette.surface}
+          >
+            <ThemedText style={[styles.modalTitle, { color: palette.text }]}>
+              Transaction details
+            </ThemedText>
+            {selectedSale ? (
+              <ScrollView
+                contentContainerStyle={styles.modalContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.detailsSection}>
+                  <View style={styles.detailsRow}>
+                    <ThemedText
+                      style={[styles.detailsLabel, { color: palette.muted }]}
+                    >
+                      Transaction
+                    </ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      {selectedSale.transaction_no}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <ThemedText
+                      style={[styles.detailsLabel, { color: palette.muted }]}
+                    >
+                      Customer
+                    </ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      {selectedSale.customer_id
+                        ? (customerMap.get(selectedSale.customer_id) ??
+                          "Customer")
+                        : "Walk-in"}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <ThemedText
+                      style={[styles.detailsLabel, { color: palette.muted }]}
+                    >
+                      Payment
+                    </ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      {selectedSale.payment_method}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <ThemedText
+                      style={[styles.detailsLabel, { color: palette.muted }]}
+                    >
+                      Subtotal
+                    </ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      {`PHP ${selectedSale.subtotal.toFixed(2)}`}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <ThemedText
+                      style={[styles.detailsLabel, { color: palette.muted }]}
+                    >
+                      Total
+                    </ThemedText>
+                    <ThemedText style={{ color: palette.text }}>
+                      {`PHP ${selectedSale.total_amount.toFixed(2)}`}
+                    </ThemedText>
+                  </View>
+                  {selectedSale.created_at ? (
+                    <ThemedText style={{ color: palette.muted }}>
+                      {new Date(selectedSale.created_at).toLocaleString()}
+                    </ThemedText>
+                  ) : null}
+                </View>
+
+                <View style={styles.detailsSection}>
+                  <ThemedText
+                    style={[styles.sectionLabel, { color: palette.muted }]}
+                  >
+                    Products
+                  </ThemedText>
+                  {isDetailsLoading ? (
+                    <ThemedText style={{ color: palette.muted }}>
+                      Loading items...
+                    </ThemedText>
+                  ) : saleItems.length === 0 ? (
+                    <ThemedText style={{ color: palette.muted }}>
+                      No items recorded.
+                    </ThemedText>
+                  ) : (
+                    saleItems.map((item) => (
+                      <View style={styles.itemRow} key={item.sale_item_id}>
+                        <View style={styles.itemInfo}>
+                          <ThemedText style={{ color: palette.text }}>
+                            {productMap.get(item.product_id) ?? "Product"}
+                          </ThemedText>
+                          <ThemedText style={{ color: palette.muted }}>
+                            {`Qty ${item.quantity} | PHP ${item.price.toFixed(2)}`}
+                          </ThemedText>
+                        </View>
+                        <ThemedText style={{ color: palette.text }}>
+                          {`PHP ${item.total.toFixed(2)}`}
+                        </ThemedText>
+                      </View>
+                    ))
+                  )}
+                </View>
+
+                <View style={styles.modalActions}>
+                  <Pressable
+                    style={[
+                      styles.cancelButton,
+                      { borderColor: palette.border },
+                    ]}
+                    onPress={closeDetails}
+                  >
+                    <ThemedText style={{ color: palette.text }}>
+                      Close
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              </ScrollView>
+            ) : (
+              <ThemedText style={{ color: palette.muted }}>
+                No transaction selected.
+              </ThemedText>
+            )}
+          </ThemedView>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -875,6 +1076,10 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     gap: 4,
+  },
+  cardActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   cardLabel: {
     textTransform: "uppercase",
@@ -947,6 +1152,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
+  detailsButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
   productRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1001,6 +1212,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
+  },
+  detailsSection: {
+    gap: 10,
+  },
+  detailsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  detailsLabel: {
+    textTransform: "uppercase",
+    fontSize: 11,
+    letterSpacing: 1.2,
+  },
+  itemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  itemInfo: {
+    flex: 1,
+    gap: 4,
   },
   cancelButton: {
     borderWidth: 1,
