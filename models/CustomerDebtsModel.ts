@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import type { Customer, CustomerDebt, Sale } from "./types";
+import type { CustomerDebt, SaleItem } from "./types";
 
 export async function listCustomerDebts() {
   const db = await getDb();
@@ -37,6 +37,51 @@ export async function listDebtPayments() {
 		ORDER BY cd.created_at DESC
 	`);
   return rows;
+}
+
+export async function listDebtPaymentsWithItems() {
+  const db = await getDb();
+  const debts = await db.getAllAsync<CustomerDebt & { customer_name: string; transaction_no: string }>(`
+		SELECT
+			cd.debt_id,
+			cd.sale_id,
+			cd.customer_id,
+			cd.total_debt,
+			cd.remaining_balance,
+			cd.created_at,
+			cd.updated_at,
+			c.customer_name,
+			s.transaction_no
+		FROM customer_debts cd
+		JOIN customers c ON c.customer_id = cd.customer_id
+		JOIN sales s ON s.sale_id = cd.sale_id
+		ORDER BY cd.created_at DESC
+	`);
+
+  const result = await Promise.all(
+    debts.map(async (debt) => {
+      const items = await db.getAllAsync<SaleItem & { product_name: string }>(`
+				SELECT
+					si.sale_item_id,
+					si.sale_id,
+					si.product_id,
+					si.quantity,
+					si.price,
+					si.total,
+					si.created_at,
+					si.updated_at,
+					p.product_name
+				FROM sale_items si
+				JOIN products p ON p.product_id = si.product_id
+				WHERE si.sale_id = ?
+				ORDER BY si.sale_item_id
+			`, [debt.sale_id]);
+
+      return { ...debt, items };
+    }),
+  );
+
+  return result;
 }
 
 export async function getDebtById(debtId: number) {

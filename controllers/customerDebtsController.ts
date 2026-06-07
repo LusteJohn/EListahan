@@ -1,5 +1,6 @@
 import {
     listDebtPayments,
+    listDebtPaymentsWithItems,
     applyDebtPayment,
     deleteCustomerDebt,
     getDebtById,
@@ -16,6 +17,10 @@ export async function fetchCustomerDebts() {
 
 export async function fetchDebtPayments() {
   return listDebtPayments();
+}
+
+export async function fetchDebtPaymentsWithItems() {
+  return listDebtPaymentsWithItems();
 }
 
 export async function fetchDebtById(debtId: number) {
