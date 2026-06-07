@@ -186,3 +186,33 @@ export async function deleteCustomerDebt(debtId: number) {
   const db = await getDb();
   await db.runAsync("DELETE FROM customer_debts WHERE debt_id = ?", [debtId]);
 }
+
+export async function listDebtTimeline() {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ date: string; total_debt: number; remaining_balance: number }>(`
+		SELECT
+			DATE(created_at) AS date,
+			SUM(total_debt) AS total_debt,
+			SUM(remaining_balance) AS remaining_balance
+		FROM customer_debts
+		GROUP BY DATE(created_at)
+		ORDER BY date ASC
+	`);
+  return rows;
+}
+
+export async function listDebtByCustomer() {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ customer_id: number; customer_name: string; total_debt: number; remaining_balance: number }>(`
+		SELECT
+			cd.customer_id,
+			c.customer_name,
+			SUM(cd.total_debt) AS total_debt,
+			SUM(cd.remaining_balance) AS remaining_balance
+		FROM customer_debts cd
+		JOIN customers c ON c.customer_id = cd.customer_id
+		GROUP BY cd.customer_id, c.customer_name
+		ORDER BY total_debt DESC
+	`);
+  return rows;
+}
