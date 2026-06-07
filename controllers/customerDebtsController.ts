@@ -1,4 +1,5 @@
 import {
+    listDebtPayments,
     applyDebtPayment,
     deleteCustomerDebt,
     getDebtById,
@@ -11,6 +12,10 @@ import type { CustomerDebt } from "@/models/types";
 
 export async function fetchCustomerDebts() {
   return listCustomerDebts();
+}
+
+export async function fetchDebtPayments() {
+  return listDebtPayments();
 }
 
 export async function fetchDebtById(debtId: number) {

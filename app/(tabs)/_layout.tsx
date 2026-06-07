@@ -87,6 +87,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="payment-history"
+        options={{
+          title: "Payments",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="dollarsign.circle.fill" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
