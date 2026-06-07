@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import type { CustomerDebt } from "./types";
+import type { Customer, CustomerDebt, Sale } from "./types";
 
 export async function listCustomerDebts() {
   const db = await getDb();
@@ -14,6 +14,27 @@ export async function listCustomerDebts() {
 			updated_at
 		FROM customer_debts
 		ORDER BY created_at DESC
+	`);
+  return rows;
+}
+
+export async function listDebtPayments() {
+  const db = await getDb();
+  const rows = await db.getAllAsync<CustomerDebt & { customer_name: string; transaction_no: string }>(`
+		SELECT
+			cd.debt_id,
+			cd.sale_id,
+			cd.customer_id,
+			cd.total_debt,
+			cd.remaining_balance,
+			cd.created_at,
+			cd.updated_at,
+			c.customer_name,
+			s.transaction_no
+		FROM customer_debts cd
+		JOIN customers c ON c.customer_id = cd.customer_id
+		JOIN sales s ON s.sale_id = cd.sale_id
+		ORDER BY cd.created_at DESC
 	`);
   return rows;
 }
